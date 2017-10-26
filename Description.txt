@@ -1,0 +1,32 @@
+Database has a scheme, where are implemented relationships:
+	1:1 - 1 artist, 1 association (in terms of the fact that one performer is the leader of the group / collaboration);
+	1:m - 1 label, m artist (several artists can be subscribed to the label);
+	m:m - m artist, m genres.
+
+Description of fields: 
+Table Artists (Artists): 
+	#ID - identifier with parameters primary key and autoincrement (accordingly, AID - Association ID, LID - Label ID, etc.); 
+	#Artist - the name of the artist (most often an alias);     
+	#Years active - years of activity of the performer (before the end of career); 
+	#Full name - full (real) name; 
+	#Alias (if available, ie can take the value NULL); 
+	#Origin - place of birth (eg city, state); 
+	#Occupation (s) - other activities, besides the musician; 
+	#Birth / Death date - the date of birth / death (the latter can also be NULL); 
+Table Labels (Labels - a brand created by record companies): 
+	#Label - the name of the label; #Founder is the founder; 
+	#Founded - date of foundation; 
+	#Status - the status of the label (boolean variable, takes the value of "true" if the label continues its activity); 
+Table Associations: 
+	#Association - the name of the association (group, duet, collaboration, etc.); 
+	#Origin - place of foundation; 
+	#Years active - the years of activity of the association; 
+	#Leader ID - identifier of the leader of the group; 
+	#Label ID - the identifier of a label (groups, as well as performers, can be recorded on a label); 
+Table Artist associaitons:
+	#ID - identifier of the artist;
+	#AID - identifier of the association(s);
+Tables Genre / Artist genre (Genres / Genres of artists - here the table "Genres" assigns genres to identifiers, and "Genres of artists" - establishes relations between artists and genres): 
+	#ID - the identifier of the executor; 
+	#GID - Genre ID; 
+	#Genre - the name of the music genre.
