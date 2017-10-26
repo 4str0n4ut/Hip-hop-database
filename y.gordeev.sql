@@ -140,7 +140,7 @@ ALTER TABLE genre_id_seq OWNER TO postgres;
 
 CREATE TABLE genre (
     id integer DEFAULT nextval('genre_id_seq'::regclass) NOT NULL,
-    genre varying(64) NOT NULL
+    genre character varying(64) NOT NULL
 );
 
 
