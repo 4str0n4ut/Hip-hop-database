@@ -1,0 +1,69 @@
+--
+-- This file contains executable queries for "y.gordeev" database
+--
+
+--
+-- Execute this file using \i '...' command. Example: \i 'D:/SQL/Queries.txt'
+--
+
+\connect "y.gordeev"
+
+
+
+-- low complexity queries
+
+--
+-- Outputs information about labels that are still continuing their activity (here 'TRUE' means 'valid')
+--
+
+\echo SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE';
+SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE';
+
+--
+-- Outputs information about artists which started their careers at 1980-2000s and still active
+--
+
+\echo SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
+SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
+ 
+--
+-- Outputs information about associations located in 'Los Angeles, California, U.S.' or 'Long Beach, California, U.S.', which have ended their activities
+--
+
+\echo SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+
+--
+-- Outputs information about live artists, born before 90`s and which occupation are being record producer
+--
+
+\echo SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_date ISNULL AND a.birth_date <= '1990-1-1';
+SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_date ISNULL AND a.birth_date <= '1990-1-1';
+
+
+
+-- medium complexity queries
+
+--
+-- Outputs information about artists in the genre of gangsta rap
+--
+
+\echo SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.id INNER JOIN genre g ON g.id = artist_genre.gid WHERE g.genre = ('gangsta rap');
+SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.id INNER JOIN genre g ON g.id = artist_genre.gid WHERE g.genre = ('gangsta rap');
+
+--
+-- Outputs information about the artists from existing labels that started their activity before the foundation of the label
+--
+
+\echo SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
+SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
+
+--
+-- Outputs information about the association`s performers and its leader, with the condition that the performer was born in the city in which the label was founded
+--
+
+\echo SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.id INNER JOIN associations ass ON artist_associations.aid = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.id INNER JOIN associations ass ON artist_associations.aid = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+
+
+
