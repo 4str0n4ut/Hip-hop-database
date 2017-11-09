@@ -13,11 +13,11 @@
 -- low complexity queries
 
 --
--- Outputs information about labels that are still continuing their activity (here 'TRUE' means 'valid')
+-- Outputs information about labels that are still continuing their activity (here 'TRUE' means 'valid') and sort them by date of foundation
 --
 
-\echo SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE';
-SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE';
+\echo SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
+SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
 
 --
 -- Outputs information about artists which started their careers at 1980-2000s and still active
@@ -48,8 +48,8 @@ SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_
 -- Outputs information about artists in the genre of gangsta rap
 --
 
-\echo SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.id INNER JOIN genre g ON g.id = artist_genre.gid WHERE g.genre = ('gangsta rap');
-SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.id INNER JOIN genre g ON g.id = artist_genre.gid WHERE g.genre = ('gangsta rap');
+\echo SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
+SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
 
 --
 -- Outputs information about the artists from existing labels that started their activity before the foundation of the label
@@ -62,8 +62,8 @@ SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists
 -- Outputs information about the association`s performers and its leader, with the condition that the performer was born in the city in which the label was founded
 --
 
-\echo SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.id INNER JOIN associations ass ON artist_associations.aid = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
-SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.id INNER JOIN associations ass ON artist_associations.aid = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+\echo SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
 
 
 

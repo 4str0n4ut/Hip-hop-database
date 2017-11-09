@@ -26,14 +26,13 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
 
-
 --
 -- Name: artist_associations; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE artist_associations (
-    id integer NOT NULL,
-    aid integer NOT NULL
+    artist_id integer NOT NULL,
+    associations_id integer NOT NULL
 );
 
 
@@ -44,8 +43,8 @@ ALTER TABLE artist_associations OWNER TO postgres;
 --
 
 CREATE TABLE artist_genre (
-    id integer NOT NULL,
-    gid integer NOT NULL
+    artist_id integer NOT NULL,
+    genre_id integer NOT NULL
 );
 
 
@@ -82,6 +81,8 @@ CREATE TABLE artists (
     end_of_activity smallint,
     full_name character varying(64) NOT NULL,
     CONSTRAINT artists_activity_check CHECK ((start_of_activity < end_of_activity)),
+    CONSTRAINT artists_activity_start_check CHECK ((start_of_activity > 1973)),
+    CONSTRAINT artists_birth_date_start_check CHECK ((birth_date > '1955-01-01'::date)),
     CONSTRAINT artists_date_check CHECK ((birth_date < death_date))
 );
 
@@ -114,7 +115,8 @@ CREATE TABLE associations (
     label_id integer,
     start_of_activity smallint NOT NULL,
     end_of_activity smallint,
-    CONSTRAINT associations_activity_check CHECK ((start_of_activity < end_of_activity))
+    CONSTRAINT associations_activity_check CHECK ((start_of_activity < end_of_activity)),
+    CONSTRAINT associations_activity_start_check CHECK ((start_of_activity > 1973))
 );
 
 
@@ -170,7 +172,7 @@ CREATE TABLE labels (
     founder character varying(64) NOT NULL,
     status boolean NOT NULL,
     founded smallint NOT NULL,
-    CONSTRAINT labels_status_check CHECK (((status = false) OR (status = true)))
+    CONSTRAINT labels_founded_start_check CHECK ((founded > 1925))
 );
 
 
@@ -331,7 +333,7 @@ SELECT pg_catalog.setval('labels_id_seq', 11, true);
 --
 
 ALTER TABLE ONLY artist_associations
-    ADD CONSTRAINT artist_associations_pkey PRIMARY KEY (id, aid);
+    ADD CONSTRAINT artist_associations_pkey PRIMARY KEY (artist_id, associations_id);
 
 
 --
@@ -339,7 +341,7 @@ ALTER TABLE ONLY artist_associations
 --
 
 ALTER TABLE ONLY artist_genre
-    ADD CONSTRAINT artist_genre_pkey PRIMARY KEY (id, gid);
+    ADD CONSTRAINT artist_genre_pkey PRIMARY KEY (artist_id, genre_id);
 
 
 --
@@ -419,7 +421,7 @@ ALTER TABLE ONLY labels
 --
 
 ALTER TABLE ONLY artist_associations
-    ADD CONSTRAINT artist_associations_aid_fkey FOREIGN KEY (aid) REFERENCES associations(id);
+    ADD CONSTRAINT artist_associations_aid_fkey FOREIGN KEY (associations_id) REFERENCES associations(id);
 
 
 --
@@ -427,7 +429,7 @@ ALTER TABLE ONLY artist_associations
 --
 
 ALTER TABLE ONLY artist_associations
-    ADD CONSTRAINT artist_associations_id_fkey FOREIGN KEY (id) REFERENCES artists(id);
+    ADD CONSTRAINT artist_associations_id_fkey FOREIGN KEY (artist_id) REFERENCES artists(id);
 
 
 --
@@ -435,7 +437,7 @@ ALTER TABLE ONLY artist_associations
 --
 
 ALTER TABLE ONLY artist_genre
-    ADD CONSTRAINT artist_genre_gid_fkey FOREIGN KEY (gid) REFERENCES genre(id);
+    ADD CONSTRAINT artist_genre_gid_fkey FOREIGN KEY (genre_id) REFERENCES genre(id);
 
 
 --
@@ -443,7 +445,7 @@ ALTER TABLE ONLY artist_genre
 --
 
 ALTER TABLE ONLY artist_genre
-    ADD CONSTRAINT artist_genre_id_fkey FOREIGN KEY (id) REFERENCES artists(id);
+    ADD CONSTRAINT artist_genre_id_fkey FOREIGN KEY (artist_id) REFERENCES artists(id);
 
 
 --
