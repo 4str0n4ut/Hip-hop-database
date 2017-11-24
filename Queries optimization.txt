@@ -1,0 +1,385 @@
+////////
+low complexity queries optimization
+////////
+
+SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
+
+
+y.gordeev=# explain (analyze) SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
+                                                QUERY PLAN
+----------------------------------------------------------------------------------------------------------
+ Sort  (cost=1.19..1.20 rows=6 width=294) (actual time=0.042..0.043 rows=8 loops=1)
+   Sort Key: founded
+   Sort Method: quicksort  Memory: 25kB
+   ->  Seq Scan on labels l  (cost=0.00..1.11 rows=6 width=294) (actual time=0.023..0.024 rows=8 loops=1)
+         Filter: status
+         Rows Removed by Filter: 3
+ Planning time: 0.152 ms
+ Execution time: 3.701 ms
+(8 строк)
+y.gordeev=# create index on labels(status);
+CREATE INDEX
+y.gordeev=# create index on labels(founded);
+CREATE INDEX
+y.gordeev=# explain (analyze) SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
+                                                QUERY PLAN
+----------------------------------------------------------------------------------------------------------
+ Sort  (cost=1.19..1.20 rows=6 width=294) (actual time=0.053..0.053 rows=8 loops=1)
+   Sort Key: founded
+   Sort Method: quicksort  Memory: 25kB
+   ->  Seq Scan on labels l  (cost=0.00..1.11 rows=6 width=294) (actual time=0.019..0.023 rows=8 loops=1)
+         Filter: status
+         Rows Removed by Filter: 3
+ Planning time: 0.150 ms
+ Execution time: 0.074 ms
+(8 строк)
+y.gordeev=# SET enable_seqscan TO off;
+y.gordeev=# explain (analyze) SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
+                                                           QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using labels_founded_idx on labels l  (cost=0.14..12.30 rows=6 width=294) (actual time=0.023..0.027 rows=8 loops=1)
+   Filter: status
+   Rows Removed by Filter: 3
+ Planning time: 0.147 ms
+ Execution time: 0.042 ms
+(5 строк)
+
+/////////
+SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
+
+
+y.gordeev=# EXPLAIN (ANALYZE) SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
+                                                             QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1.34..1.36 rows=7 width=73) (actual time=0.031..0.031 rows=6 loops=1)
+   Sort Key: start_of_activity
+   Sort Method: quicksort  Memory: 25kB
+   ->  Seq Scan on artists a  (cost=0.00..1.24 rows=7 width=73) (actual time=0.015..0.018 rows=6 loops=1)
+         Filter: ((end_of_activity IS NULL) AND (start_of_activity >= '1980'::smallint) AND (start_of_activity <= '2000'::smallint))
+         Rows Removed by Filter: 10
+ Planning time: 0.112 ms
+ Execution time: 0.052 ms
+(8 строк)
+y.gordeev=# CREATE INDEX ON artists(start_of_activity);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON artists(end_of_activity);
+CREATE INDEX
+y.gordeev=# EXPLAIN (ANALYZE, BUFFERS) SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
+                                                             QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1.34..1.36 rows=7 width=73) (actual time=0.032..0.032 rows=6 loops=1)
+   Sort Key: start_of_activity
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=1
+   ->  Seq Scan on artists a  (cost=0.00..1.24 rows=7 width=73) (actual time=0.015..0.018 rows=6 loops=1)
+         Filter: ((end_of_activity IS NULL) AND (start_of_activity >= '1980'::smallint) AND (start_of_activity <= '2000'::smallint))
+         Rows Removed by Filter: 10
+         Buffers: shared hit=1
+ Planning time: 0.271 ms
+ Execution time: 0.056 ms
+(10 строк)
+y.gordeev=# drop index artists_end_of_activity_idx;
+DROP INDEX
+y.gordeev=# drop index artists_start_of_activity_idx;
+DROP INDEX
+y.gordeev=# SET enable_seqscan TO off;
+SET
+y.gordeev=# EXPLAIN (ANALYZE) SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
+                                                             QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=10000000001.34..10000000001.36 rows=7 width=73) (actual time=0.030..0.030 rows=6 loops=1)
+   Sort Key: start_of_activity
+   Sort Method: quicksort  Memory: 25kB
+   ->  Seq Scan on artists a  (cost=10000000000.00..10000000001.24 rows=7 width=73) (actual time=0.013..0.017 rows=6 loops=1)
+         Filter: ((end_of_activity IS NULL) AND (start_of_activity >= '1980'::smallint) AND (start_of_activity <= '2000'::smallint))
+         Rows Removed by Filter: 10
+ Planning time: 0.103 ms
+ Execution time: 0.052 ms
+(8 строк)
+
+////////
+SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+
+y.gordeev=# EXPLAIN (ANALYZE) SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+                                                                             QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Seq Scan on associations a  (cost=0.00..1.14 rows=2 width=294) (actual time=0.019..0.022 rows=3 loops=1)
+   Filter: ((end_of_activity IS NOT NULL) AND (((origin)::text = 'Los Angeles, California, U.S.'::text) OR ((origin)::text = 'Long Beach, California, U.S.'::text)))
+   Rows Removed by Filter: 6
+ Planning time: 0.100 ms
+ Execution time: 0.044 ms
+(5 строк)
+y.gordeev=# CREATE INDEX ON associations(origin);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON associations(end_of_activity);
+CREATE INDEX
+y.gordeev=# SET enable_seqscan TO off;
+SET
+y.gordeev=# EXPLAIN (ANALYZE) SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+                                                                     QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using associations_end_of_activity_idx on associations a  (cost=0.14..12.34 rows=2 width=294) (actual time=0.026..0.027 rows=3 loops=1)
+   Index Cond: (end_of_activity IS NOT NULL)
+   Filter: (((origin)::text = 'Los Angeles, California, U.S.'::text) OR ((origin)::text = 'Long Beach, California, U.S.'::text))
+   Rows Removed by Filter: 1
+ Planning time: 0.600 ms
+ Execution time: 0.050 ms
+(6 строк)
+y.gordeev=# drop index associations_end_of_activity_idx;
+DROP INDEX
+y.gordeev=# drop index associations_origin_idx;
+DROP INDEX
+y.gordeev=# SET enable_seqscan TO off;
+SET
+y.gordeev=# EXPLAIN (ANALYZE) SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+                                                                             QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Seq Scan on associations a  (cost=10000000000.00..10000000001.14 rows=2 width=294) (actual time=0.012..0.015 rows=3 loops=1)
+   Filter: ((end_of_activity IS NOT NULL) AND (((origin)::text = 'Los Angeles, California, U.S.'::text) OR ((origin)::text = 'Long Beach, California, U.S.'::text)))
+   Rows Removed by Filter: 6
+ Planning time: 0.074 ms
+ Execution time: 0.035 ms
+(5 строк)
+
+////////
+SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_date ISNULL AND a.birth_date <= '1990-1-1';
+
+y.gordeev=# EXPLAIN (ANALYZE) SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_date ISNULL AND a.birth_date <= '1990-1-1';
+                                                         QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------
+ Seq Scan on artists a  (cost=0.00..1.24 rows=4 width=94) (actual time=0.013..0.016 rows=3 loops=1)
+   Filter: ((death_date IS NULL) AND (birth_date <= '1990-01-01'::date) AND ((occupation)::text = 'record producer'::text))
+   Rows Removed by Filter: 13
+ Planning time: 0.112 ms
+ Execution time: 0.033 ms
+(5 строк)
+
+y.gordeev=# CREATE INDEX ON artists(occupation);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON artists(death_date);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON artists(birth_date);
+CREATE INDEX
+y.gordeev=# EXPLAIN (ANALYZE) SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+                                                                             QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Seq Scan on associations a  (cost=0.00..1.14 rows=2 width=294) (actual time=0.017..0.020 rows=3 loops=1)
+   Filter: ((end_of_activity IS NOT NULL) AND (((origin)::text = 'Los Angeles, California, U.S.'::text) OR ((origin)::text = 'Long Beach, California, U.S.'::text)))
+   Rows Removed by Filter: 6
+ Planning time: 0.100 ms
+ Execution time: 0.039 ms
+(5 строк)
+
+
+y.gordeev=# SET enable_seqscan TO off;
+SET
+y.gordeev=# EXPLAIN (ANALYZE) SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+                                                                             QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Seq Scan on associations a  (cost=10000000000.00..10000000001.14 rows=2 width=294) (actual time=0.016..0.019 rows=3 loops=1)
+   Filter: ((end_of_activity IS NOT NULL) AND (((origin)::text = 'Los Angeles, California, U.S.'::text) OR ((origin)::text = 'Long Beach, California, U.S.'::text)))
+   Rows Removed by Filter: 6
+ Planning time: 0.092 ms
+ Execution time: 0.039 ms
+(5 строк)
+
+
+////////
+medium complexity queries optimization
+////////
+SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
+
+y.gordeev=# EXPLAIN (ANALYZE) SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
+                                                                        QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=21.77..21.78 rows=2 width=160) (actual time=20.711..20.712 rows=4 loops=1)
+   Sort Key: a.artist
+   Sort Method: quicksort  Memory: 25kB
+   ->  Nested Loop  (cost=0.41..21.76 rows=2 width=160) (actual time=20.679..20.687 rows=4 loops=1)
+         ->  Nested Loop  (cost=0.27..20.51 rows=2 width=150) (actual time=20.658..20.661 rows=4 loops=1)
+               ->  Index Scan using genre_genre_key on genre g  (cost=0.14..8.15 rows=1 width=150) (actual time=9.721..9.722 rows=1 loops=1)
+                     Index Cond: ((genre)::text = 'gangsta rap'::text)
+               ->  Index Only Scan using artist_genre_pkey on artist_genre  (cost=0.14..12.35 rows=1 width=8) (actual time=10.928..10.930 rows=4 loops=1)
+                     Index Cond: (genre_id = g.id)
+                     Heap Fetches: 4
+         ->  Index Scan using artists_pkey on artists a  (cost=0.14..0.60 rows=1 width=14) (actual time=0.005..0.005 rows=1 loops=4)
+               Index Cond: (id = artist_genre.artist_id)
+ Planning time: 0.721 ms
+ Execution time: 20.811 ms
+(14 строк)
+y.gordeev=# CREATE INDEX ON artist_genre(artist_id);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON artist_genre(genre_id);
+CREATE INDEX
+y.gordeev=# EXPLAIN (ANALYZE) SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
+                                                                        QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=17.58..17.58 rows=2 width=160) (actual time=0.180..0.180 rows=4 loops=1)
+   Sort Key: a.artist
+   Sort Method: quicksort  Memory: 25kB
+   ->  Nested Loop  (cost=0.41..17.57 rows=2 width=160) (actual time=0.147..0.158 rows=4 loops=1)
+         ->  Nested Loop  (cost=0.27..16.32 rows=2 width=150) (actual time=0.070..0.074 rows=4 loops=1)
+               ->  Index Scan using genre_genre_key on genre g  (cost=0.14..8.15 rows=1 width=150) (actual time=0.028..0.028 rows=1 loops=1)
+                     Index Cond: ((genre)::text = 'gangsta rap'::text)
+               ->  Index Scan using artist_genre_genre_id_idx on artist_genre  (cost=0.14..8.15 rows=1 width=8) (actual time=0.037..0.040 rows=4 loops=1)
+                     Index Cond: (genre_id = g.id)
+         ->  Index Scan using artists_pkey on artists a  (cost=0.14..0.60 rows=1 width=14) (actual time=0.019..0.019 rows=1 loops=4)
+               Index Cond: (id = artist_genre.artist_id)
+ Planning time: 1.429 ms
+ Execution time: 0.249 ms
+(13 строк)
+y.gordeev=# SET enable_seqscan TO off;
+SET
+y.gordeev=# EXPLAIN (ANALYZE) SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
+                                                                        QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=17.58..17.58 rows=2 width=160) (actual time=0.083..0.083 rows=4 loops=1)
+   Sort Key: a.artist
+   Sort Method: quicksort  Memory: 25kB
+   ->  Nested Loop  (cost=0.41..17.57 rows=2 width=160) (actual time=0.058..0.066 rows=4 loops=1)
+         ->  Nested Loop  (cost=0.27..16.32 rows=2 width=150) (actual time=0.050..0.053 rows=4 loops=1)
+               ->  Index Scan using genre_genre_key on genre g  (cost=0.14..8.15 rows=1 width=150) (actual time=0.038..0.038 rows=1 loops=1)
+                     Index Cond: ((genre)::text = 'gangsta rap'::text)
+               ->  Index Scan using artist_genre_genre_id_idx on artist_genre  (cost=0.14..8.15 rows=1 width=8) (actual time=0.008..0.010 rows=4 loops=1)
+                     Index Cond: (genre_id = g.id)
+         ->  Index Scan using artists_pkey on artists a  (cost=0.14..0.60 rows=1 width=14) (actual time=0.003..0.003 rows=1 loops=4)
+               Index Cond: (id = artist_genre.artist_id)
+ Planning time: 0.436 ms
+ Execution time: 0.139 ms
+(13 строк)
+
+////////
+SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
+
+y.gordeev=# EXPLAIN (ANALYZE) SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
+                                                               QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=24.92..24.93 rows=4 width=306) (actual time=0.118..0.119 rows=8 loops=1)
+   Sort Key: l.founded
+   Sort Method: quicksort  Memory: 25kB
+   ->  Merge Join  (cost=0.27..24.88 rows=4 width=306) (actual time=0.092..0.103 rows=8 loops=1)
+         Merge Cond: (a.id = l.id)
+         Join Filter: (a.start_of_activity < l.founded)
+         Rows Removed by Join Filter: 3
+         ->  Index Scan using artists_pkey on artists a  (cost=0.14..12.38 rows=16 width=16) (actual time=0.015..0.016 rows=12 loops=1)
+         ->  Index Scan using labels_pkey on labels l  (cost=0.14..12.30 rows=11 width=298) (actual time=0.068..0.073 rows=11 loops=1)
+               Filter: (status IS NOT NULL)
+ Planning time: 0.560 ms
+ Execution time: 40.201 ms
+(12 строк)
+y.gordeev=# CREATE INDEX ON labels(id);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON labels(status);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON labels(founded);
+CREATE INDEX
+y.gordeev=# EXPLAIN (ANALYZE) SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
+                                                               QUERY PLAN
+-----------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=24.92..24.93 rows=4 width=306) (actual time=0.055..0.056 rows=8 loops=1)
+   Sort Key: l.founded
+   Sort Method: quicksort  Memory: 25kB
+   ->  Merge Join  (cost=0.27..24.88 rows=4 width=306) (actual time=0.037..0.045 rows=8 loops=1)
+         Merge Cond: (a.id = l.id)
+         Join Filter: (a.start_of_activity < l.founded)
+         Rows Removed by Join Filter: 3
+         ->  Index Scan using artists_pkey on artists a  (cost=0.14..12.38 rows=16 width=16) (actual time=0.007..0.009 rows=12 loops=1)
+         ->  Index Scan using labels_id_idx on labels l  (cost=0.14..12.30 rows=11 width=298) (actual time=0.023..0.027 rows=11 loops=1)
+               Filter: (status IS NOT NULL)
+ Planning time: 1.081 ms
+ Execution time: 0.088 ms
+(12 строк)
+y.gordeev=# SET enable_seqscan TO off;
+SET
+y.gordeev=# EXPLAIN (ANALYZE) SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
+                                                               QUERY PLAN
+-----------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=24.92..24.93 rows=4 width=306) (actual time=0.089..0.090 rows=8 loops=1)
+   Sort Key: l.founded
+   Sort Method: quicksort  Memory: 25kB
+   ->  Merge Join  (cost=0.27..24.88 rows=4 width=306) (actual time=0.058..0.073 rows=8 loops=1)
+         Merge Cond: (a.id = l.id)
+         Join Filter: (a.start_of_activity < l.founded)
+         Rows Removed by Join Filter: 3
+         ->  Index Scan using artists_pkey on artists a  (cost=0.14..12.38 rows=16 width=16) (actual time=0.036..0.040 rows=12 loops=1)
+         ->  Index Scan using labels_id_idx on labels l  (cost=0.14..12.30 rows=11 width=298) (actual time=0.011..0.018 rows=11 loops=1)
+               Filter: (status IS NOT NULL)
+ Planning time: 0.346 ms
+ Execution time: 0.146 ms
+(12 строк)
+
+/////////
+SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+
+y.gordeev=# EXPLAIN (ANALYZE) SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+                                                                           QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=12.79..37.56 rows=1 width=312) (actual time=0.233..0.263 rows=5 loops=1)
+   ->  Nested Loop  (cost=12.65..35.92 rows=1 width=306) (actual time=0.226..0.250 rows=5 loops=1)
+         Join Filter: (ass.id = artist_associations.associations_id)
+         Rows Removed by Join Filter: 8
+         ->  Hash Join  (cost=12.52..24.94 rows=12 width=314) (actual time=0.054..0.069 rows=14 loops=1)
+               Hash Cond: ((art.origin)::text = (ass.origin)::text)
+               ->  Index Scan using artists_pkey on artists art  (cost=0.14..12.38 rows=16 width=39) (actual time=0.007..0.012 rows=16 loops=1)
+               ->  Hash  (cost=12.27..12.27 rows=9 width=300) (actual time=0.038..0.038 rows=9 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Index Scan using associations_pkey on associations ass  (cost=0.14..12.27 rows=9 width=300) (actual time=0.028..0.032 rows=9 loops=1)
+         ->  Index Only Scan using artist_associations_pkey on artist_associations  (cost=0.14..0.90 rows=1 width=8) (actual time=0.012..0.013 rows=1 loops=14)
+               Index Cond: (artist_id = art.id)
+               Heap Fetches: 13
+   ->  Index Scan using artists_pkey on artists art2  (cost=0.14..1.49 rows=1 width=14) (actual time=0.002..0.002 rows=1 loops=5)
+         Index Cond: (id = ass.leader_id)
+ Planning time: 1.519 ms
+ Execution time: 0.343 ms
+(17 строк)
+
+y.gordeev=# CREATE INDEX ON artist_associations(artist_id);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON artist_associations(associations_id);
+CREATE INDEX
+y.gordeev=# CREATE INDEX ON associations(leader_id);
+CREATE INDEX
+y.gordeev=# EXPLAIN (ANALYZE) SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+                                                                   QUERY PLAN
+------------------------------------------------------------------------------------------------------------------------------------------------
+ Hash Join  (cost=3.95..5.18 rows=1 width=312) (actual time=0.074..0.077 rows=5 loops=1)
+   Hash Cond: (art2.id = ass.leader_id)
+   ->  Seq Scan on artists art2  (cost=0.00..1.16 rows=16 width=14) (actual time=0.010..0.012 rows=16 loops=1)
+   ->  Hash  (cost=3.94..3.94 rows=1 width=306) (actual time=0.055..0.055 rows=5 loops=1)
+         Buckets: 1024  Batches: 1  Memory Usage: 9kB
+         ->  Hash Join  (cost=2.65..3.94 rows=1 width=306) (actual time=0.048..0.052 rows=5 loops=1)
+               Hash Cond: ((art.id = artist_associations.artist_id) AND ((art.origin)::text = (ass.origin)::text))
+               ->  Seq Scan on artists art  (cost=0.00..1.16 rows=16 width=39) (actual time=0.003..0.004 rows=16 loops=1)
+               ->  Hash  (cost=2.47..2.47 rows=12 width=300) (actual time=0.037..0.037 rows=12 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Hash Join  (cost=1.20..2.47 rows=12 width=300) (actual time=0.029..0.032 rows=12 loops=1)
+                           Hash Cond: (artist_associations.associations_id = ass.id)
+                           ->  Seq Scan on artist_associations  (cost=0.00..1.12 rows=12 width=8) (actual time=0.005..0.006 rows=12 loops=1)
+                           ->  Hash  (cost=1.09..1.09 rows=9 width=300) (actual time=0.018..0.018 rows=9 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                 ->  Seq Scan on associations ass  (cost=0.00..1.09 rows=9 width=300) (actual time=0.006..0.006 rows=9 loops=1)
+ Planning time: 1.604 ms
+ Execution time: 0.150 ms
+(18 строк)
+
+
+y.gordeev=# SET enable_seqscan TO off;
+SET
+y.gordeev=# EXPLAIN (ANALYZE) SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+                                                                               QUERY PLAN                                                                               ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ Nested Loop  (cost=12.79..37.56 rows=1 width=312) (actual time=0.166..0.205 rows=5 loops=1)
+   ->  Nested Loop  (cost=12.65..35.92 rows=1 width=306) (actual time=0.157..0.189 rows=5 loops=1)
+         Join Filter: (ass.id = artist_associations.associations_id)
+         Rows Removed by Join Filter: 8
+         ->  Hash Join  (cost=12.52..24.94 rows=12 width=314) (actual time=0.111..0.127 rows=14 loops=1)
+               Hash Cond: ((art.origin)::text = (ass.origin)::text)
+               ->  Index Scan using artists_pkey on artists art  (cost=0.14..12.38 rows=16 width=39) (actual time=0.026..0.032 rows=16 loops=1)
+               ->  Hash  (cost=12.27..12.27 rows=9 width=300) (actual time=0.071..0.071 rows=9 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Index Scan using associations_leader_id_idx on associations ass  (cost=0.14..12.27 rows=9 width=300) (actual time=0.053..0.059 rows=9 loops=1)
+         ->  Index Scan using artist_associations_artist_id_idx on artist_associations  (cost=0.14..0.90 rows=1 width=8) (actual time=0.004..0.004 rows=1 loops=14)
+               Index Cond: (artist_id = art.id)
+   ->  Index Scan using artists_pkey on artists art2  (cost=0.14..1.49 rows=1 width=14) (actual time=0.002..0.002 rows=1 loops=5)
+         Index Cond: (id = ass.leader_id)
+ Planning time: 0.927 ms
+ Execution time: 0.285 ms
+(16 строк)

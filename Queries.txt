@@ -67,3 +67,25 @@ SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artis
 
 
 
+--- high compexity queries
+
+---
+--- Outputs genres with the number of active performers in this genre more than one (here you should put a larger number, but the table is not enough performers of the same genres)
+---
+
+\echo SELECT COUNT(a.id) members, g.genre genre FROM artists a RIGHT JOIN artist_genre ag ON (a.id = ag.artist_id AND end_of_activity ISNULL) RIGHT JOIN genre g ON ag.genre_id = g.id GROUP BY g.id HAVING COUNT(a.id) > 1;
+SELECT COUNT(a.id) members, g.genre genre FROM artists a RIGHT JOIN artist_genre ag ON (a.id = ag.artist_id AND end_of_activity ISNULL) RIGHT JOIN genre g ON ag.genre_id = g.id GROUP BY g.id HAVING COUNT(a.id) > 1;
+
+--
+-- Outputs the average age of performers (for live performers); average age, in which the performers start their hip hop career; average age of death of applicants (for dead performers)
+--
+
+\echo select (select floor(avg(date_part('year', localtimestamp) - date_part('year', a.birth_date))) as avg_age from artists a where a.death_date ISNULL), floor(avg(a.start_of_activity - date_part('year', a.birth_date))) as avg_career_start_age, (SELECT floor(avg(date_part('year', a.death_date) - date_part('year', a.birth_date))) FROM artists a where a.death_date NOTNULL) as avg_death_age from artists as a;
+select (select floor(avg(date_part('year', localtimestamp) - date_part('year', a.birth_date))) as avg_age from artists a where a.death_date ISNULL), floor(avg(a.start_of_activity - date_part('year', a.birth_date))) as avg_career_start_age, (SELECT floor(avg(date_part('year', a.death_date) - date_part('year', a.birth_date))) FROM artists a where a.death_date NOTNULL) as avg_death_age from artists as a;
+
+--
+-- Outputs information about artists older than 30 who are producers and who are in groups that have existed for more than 10 years and continue their activities
+--
+
+\echo select a.artist, a.birth_date, b.* from (select 'record producer' as occupation, birth_date, artist, id from artists where floor(date_part('year', localtimestamp) - date_part('year', artists.birth_date)) > 30) as a inner join artist_associations as aras on a.id = aras.artist_id inner join (select id as ass_id, association, start_of_activity from associations where floor(date_part('year', localtimestamp) - associations.start_of_activity) > 10 AND associations.end_of_activity ISNULL) as b on b.ass_id = aras.associations_id;
+select a.artist, a.birth_date, b.* from (select 'record producer' as occupation, birth_date, artist, id from artists where floor(date_part('year', localtimestamp) - date_part('year', artists.birth_date)) > 30) as a inner join artist_associations as aras on a.id = aras.artist_id inner join (select id as ass_id, association, start_of_activity from associations where floor(date_part('year', localtimestamp) - associations.start_of_activity) > 10 AND associations.end_of_activity ISNULL) as b on b.ass_id = aras.associations_id;
