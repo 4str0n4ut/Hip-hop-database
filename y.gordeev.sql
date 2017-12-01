@@ -5,7 +5,7 @@
 -- Dumped from database version 10.0
 -- Dumped by pg_dump version 10.0
 
-DROP DATABASE "y.gordeev";
+DROP DATABASE IF EXISTS "y.gordeev";
 --
 -- Name: y.gordeev; Type: DATABASE; Schema: -; Owner: postgres
 --
@@ -17,14 +17,66 @@ ALTER DATABASE "y.gordeev" OWNER TO postgres;
 
 \connect "y.gordeev"
 
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-SET row_security = off;
+
+--
+-- Name: artists_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE artists_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE artists_id_seq OWNER TO postgres;
+
+
+--
+-- Name: labels_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE labels_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE labels_id_seq OWNER TO postgres;
+
+
+--
+-- Name: genre_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE genre_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE genre_id_seq OWNER TO postgres;
+
+
+--
+-- Name: associations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE associations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE associations_id_seq OWNER TO postgres;
+
 
 --
 -- Name: artist_associations; Type: TABLE; Schema: public; Owner: postgres
@@ -51,20 +103,6 @@ CREATE TABLE artist_genre (
 ALTER TABLE artist_genre OWNER TO postgres;
 
 --
--- Name: artists_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE artists_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE artists_id_seq OWNER TO postgres;
-
---
 -- Name: artists; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -89,19 +127,6 @@ CREATE TABLE artists (
 
 ALTER TABLE artists OWNER TO postgres;
 
---
--- Name: associations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE associations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE associations_id_seq OWNER TO postgres;
 
 --
 -- Name: associations; Type: TABLE; Schema: public; Owner: postgres
@@ -122,19 +147,6 @@ CREATE TABLE associations (
 
 ALTER TABLE associations OWNER TO postgres;
 
---
--- Name: genre_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE genre_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE genre_id_seq OWNER TO postgres;
 
 --
 -- Name: genre; Type: TABLE; Schema: public; Owner: postgres
@@ -148,19 +160,6 @@ CREATE TABLE genre (
 
 ALTER TABLE genre OWNER TO postgres;
 
---
--- Name: labels_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE labels_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE labels_id_seq OWNER TO postgres;
 
 --
 -- Name: labels; Type: TABLE; Schema: public; Owner: postgres
@@ -417,6 +416,76 @@ ALTER TABLE ONLY labels
 
 
 --
+-- Name: artists_birth_date_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX artists_birth_date_idx ON artists USING btree (birth_date);
+
+
+--
+-- Name: artists_death_date_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX artists_death_date_idx ON artists USING btree (death_date);
+
+
+--
+-- Name: artists_end_of_activity_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX artists_end_of_activity_idx ON artists USING btree (end_of_activity);
+
+
+--
+-- Name: artists_occupation_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX artists_occupation_idx ON artists USING btree (occupation);
+
+
+--
+-- Name: artists_start_of_activity_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX artists_start_of_activity_idx ON artists USING btree (start_of_activity);
+
+
+--
+-- Name: associations_end_of_activity_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX associations_end_of_activity_idx ON associations USING btree (end_of_activity);
+
+
+--
+-- Name: associations_leader_id_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX associations_leader_id_idx ON associations USING btree (leader_id);
+
+
+--
+-- Name: associations_origin_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX associations_origin_idx ON associations USING btree (origin);
+
+
+--
+-- Name: labels_founded_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX labels_founded_idx ON labels USING btree (founded);
+
+
+--
+-- Name: labels_status_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX labels_status_idx ON labels USING btree (status);
+
+
+--
 -- Name: artist_associations artist_associations_aid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -470,6 +539,7 @@ ALTER TABLE ONLY associations
 
 ALTER TABLE ONLY associations
     ADD CONSTRAINT associations_leader_id_fkey FOREIGN KEY (leader_id) REFERENCES artists(id);
+
 
 --
 -- PostgreSQL database dump complete

@@ -17,28 +17,38 @@
 --
 
 \echo SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
-SELECT label, founder, founded FROM labels AS l WHERE l.status = 'TRUE' ORDER BY l.founded;
+SELECT label, founder, founded 
+FROM labels AS l 
+WHERE l.status = 'TRUE' 
+ORDER BY l.founded;
 
 --
 -- Outputs information about artists which started their careers at 1980-2000s and still active
 --
 
 \echo SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
-SELECT artist, full_name, origin, occupation, birth_date, start_of_activity FROM artists AS a WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) ORDER BY a.start_of_activity;
+SELECT artist, full_name, origin, occupation, birth_date, start_of_activity 
+FROM artists AS a 
+WHERE (a.start_of_activity BETWEEN '1980' AND '2000') AND (a.end_of_activity ISNULL) 
+ORDER BY a.start_of_activity;
  
 --
 -- Outputs information about associations located in 'Los Angeles, California, U.S.' or 'Long Beach, California, U.S.', which have ended their activities
 --
 
 \echo SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
-SELECT association, origin, start_of_activity FROM associations AS a WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
+SELECT association, origin, start_of_activity 
+FROM associations AS a 
+WHERE (a.origin = 'Los Angeles, California, U.S.' OR a.origin = 'Long Beach, California, U.S.') AND a.end_of_activity NOTNULL;
 
 --
 -- Outputs information about live artists, born before 90`s and which occupation are being record producer
 --
 
 \echo SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_date ISNULL AND a.birth_date <= '1990-1-1';
-SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_date ISNULL AND a.birth_date <= '1990-1-1';
+SELECT * 
+FROM artists AS a 
+WHERE a.occupation = ('record producer') AND a.death_date ISNULL AND a.birth_date <= '1990-1-1';
 
 
 
@@ -49,21 +59,35 @@ SELECT * FROM artists AS a WHERE a.occupation = ('record producer') AND a.death_
 --
 
 \echo SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
-SELECT a.id, a.artist, g.genre FROM artists a INNER JOIN artist_genre ON a.id = artist_genre.artist_id INNER JOIN genre g ON g.id = artist_genre.genre_id WHERE g.genre = ('gangsta rap') ORDER BY a.artist;
+SELECT a.id, a.artist, g.genre 
+FROM artists a 
+	INNER JOIN artist_genre ON a.id = artist_genre.artist_id 
+	INNER JOIN genre g ON g.id = artist_genre.genre_id 
+WHERE g.genre = ('gangsta rap') 
+ORDER BY a.artist;
 
 --
 -- Outputs information about the artists from existing labels that started their activity before the foundation of the label
 --
 
 \echo SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
-SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded FROM artists a JOIN labels l ON a.id = l.id WHERE l.status NOTNULL AND a.start_of_activity < l.founded ORDER BY l.founded;
+SELECT a.artist, a.start_of_activity, l.label, l.founder, l.founded 
+FROM artists a 
+	JOIN labels l ON a.id = l.id 
+WHERE l.status NOTNULL AND a.start_of_activity < l.founded 
+ORDER BY l.founded;
 
 --
 -- Outputs information about the association`s performers and its leader, with the condition that the performer was born in the city in which the label was founded
 --
 
 \echo SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
-SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
+SELECT art.artist, ass.association, ass.origin, art2.artist AS leader 
+FROM artists art 
+	INNER JOIN artist_associations ON art.id = artist_associations.artist_id 
+	INNER JOIN associations ass ON artist_associations.associations_id = ass.id 
+	INNER JOIN artists art2 ON ass.leader_id = art2.id 
+WHERE art.origin = ass.origin;
 
 
 
@@ -73,19 +97,34 @@ SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artis
 --- Outputs genres with the number of active performers in this genre more than one (here you should put a larger number, but the table is not enough performers of the same genres)
 ---
 
-\echo SELECT COUNT(a.id) members, g.genre genre FROM artists a RIGHT JOIN artist_genre ag ON (a.id = ag.artist_id AND end_of_activity ISNULL) RIGHT JOIN genre g ON ag.genre_id = g.id GROUP BY g.id HAVING COUNT(a.id) > 1;
-SELECT COUNT(a.id) members, g.genre genre FROM artists a RIGHT JOIN artist_genre ag ON (a.id = ag.artist_id AND end_of_activity ISNULL) RIGHT JOIN genre g ON ag.genre_id = g.id GROUP BY g.id HAVING COUNT(a.id) > 1;
+\echo SELECT COUNT(a.id) members, g.genre genre FROM artists a INNER JOIN artist_genre ag ON (a.id = ag.artist_id) INNER JOIN genre g ON (ag.genre_id = g.id) WHERE a.end_of_activity ISNULL GROUP BY g.id HAVING COUNT(a.id) > 1;
+SELECT COUNT(a.id) members, g.genre genre 
+FROM artists a 
+    INNER JOIN artist_genre ag ON (a.id = ag.artist_id) 
+    INNER JOIN genre g ON (ag.genre_id = g.id)
+WHERE a.end_of_activity ISNULL
+GROUP BY g.id 
+HAVING COUNT(a.id) > 1;
+
 
 --
--- Outputs the average age of performers (for live performers); average age, in which the performers start their hip hop career; average age of death of applicants (for dead performers)
+-- Outputs the average age of performers (for live performers); average age, in which the performers start their hip hop career; average age of death of applicants (for dead performers); average age of associations existing (for associations which still exist)
 --
 
-\echo select (select floor(avg(date_part('year', localtimestamp) - date_part('year', a.birth_date))) as avg_age from artists a where a.death_date ISNULL), floor(avg(a.start_of_activity - date_part('year', a.birth_date))) as avg_career_start_age, (SELECT floor(avg(date_part('year', a.death_date) - date_part('year', a.birth_date))) FROM artists a where a.death_date NOTNULL) as avg_death_age from artists as a;
-select (select floor(avg(date_part('year', localtimestamp) - date_part('year', a.birth_date))) as avg_age from artists a where a.death_date ISNULL), floor(avg(a.start_of_activity - date_part('year', a.birth_date))) as avg_career_start_age, (SELECT floor(avg(date_part('year', a.death_date) - date_part('year', a.birth_date))) FROM artists a where a.death_date NOTNULL) as avg_death_age from artists as a;
+\echo SELECT (SELECT floor(avg(date_part('year', localtimestamp) - date_part('year', a.birth_date))) AS avg_age FROM artists a WHERE a.death_date ISNULL), floor(avg(a.start_of_activity - date_part('year', a.birth_date))) AS avg_career_start_age, (SELECT floor(avg(date_part('year', a.death_date) - date_part('year', a.birth_date))) FROM artists a WHERE a.death_date NOTNULL) AS avg_death_age, (SELECT floor(avg(ass.end_of_activity - ass.start_of_activity)) FROM associations AS ass WHERE ass.end_of_activity NOTNULL) AS avg_association_existing FROM artists AS a INNER JOIN artist_associations AS artas ON (a.id = artas.artist_id) INNER JOIN associations AS ass ON (artas.associations_id = ass.id);
+SELECT (SELECT floor(avg(date_part('year', localtimestamp) - date_part('year', a.birth_date))) AS avg_age FROM artists a WHERE a.death_date ISNULL), 
+floor(avg(a.start_of_activity - date_part('year', a.birth_date))) AS avg_career_start_age, 
+(SELECT floor(avg(date_part('year', a.death_date) - date_part('year', a.birth_date))) FROM artists a WHERE a.death_date NOTNULL) AS avg_death_age, 
+(SELECT floor(avg(ass.end_of_activity - ass.start_of_activity)) FROM associations AS ass WHERE ass.end_of_activity NOTNULL) AS avg_association_existing 
+FROM artists AS a 
+	INNER JOIN artist_associations AS artas ON (a.id = artas.artist_id) 
+	INNER JOIN associations AS ass ON (artas.associations_id = ass.id);
 
 --
--- Outputs information about artists older than 30 who are producers and who are in groups that have existed for more than 10 years and continue their activities
+-- Outputs information about artists older than 30 who are record producers and who are in groups that have existed for more than 10 years and continue their activities
 --
 
-\echo select a.artist, a.birth_date, b.* from (select 'record producer' as occupation, birth_date, artist, id from artists where floor(date_part('year', localtimestamp) - date_part('year', artists.birth_date)) > 30) as a inner join artist_associations as aras on a.id = aras.artist_id inner join (select id as ass_id, association, start_of_activity from associations where floor(date_part('year', localtimestamp) - associations.start_of_activity) > 10 AND associations.end_of_activity ISNULL) as b on b.ass_id = aras.associations_id;
-select a.artist, a.birth_date, b.* from (select 'record producer' as occupation, birth_date, artist, id from artists where floor(date_part('year', localtimestamp) - date_part('year', artists.birth_date)) > 30) as a inner join artist_associations as aras on a.id = aras.artist_id inner join (select id as ass_id, association, start_of_activity from associations where floor(date_part('year', localtimestamp) - associations.start_of_activity) > 10 AND associations.end_of_activity ISNULL) as b on b.ass_id = aras.associations_id;
+\echo select a.artist, a.birth_date, b.* from (select occupation, birth_date, artist, id from artists where floor(date_part('year', localtimestamp) - date_part('year', artists.birth_date)) > 30 AND occupation = 'record producer') as a inner join artist_associations as aras on a.id = aras.artist_id inner join (select id as ass_id, association, start_of_activity from associations where floor(date_part('year', localtimestamp) - associations.start_of_activity) > 10 AND associations.end_of_activity ISNULL) as b on b.ass_id = aras.associations_id;
+SELECT a.artist, a.birth_date, b.* from (SELECT occupation, birth_date, artist, id FROM artists WHERE floor(date_part('year', localtimestamp) - date_part('year', artists.birth_date)) > 30 AND occupation = 'record producer') AS a 
+	INNER JOIN artist_associations AS aras ON a.id = aras.artist_id 
+	INNER JOIN (SELECT id AS ass_id, association, start_of_activity FROM associations WHERE floor(date_part('year', localtimestamp) - associations.start_of_activity) > 10 AND associations.end_of_activity ISNULL) AS b ON b.ass_id = aras.associations_id;
