@@ -78,7 +78,7 @@ WHERE l.status NOTNULL AND a.start_of_activity < l.founded
 ORDER BY l.founded;
 
 --
--- Outputs information about the association`s performers and its leader, with the condition that the performer was born in the city in which the label was founded
+-- Outputs information about the association`s performers and its leader, with the condition that the performer was born in the city in which the association was founded
 --
 
 \echo SELECT art.artist, ass.association, ass.origin, art2.artist AS leader FROM artists art INNER JOIN artist_associations ON art.id = artist_associations.artist_id INNER JOIN associations ass ON artist_associations.associations_id = ass.id INNER JOIN artists art2 ON ass.leader_id = art2.id WHERE art.origin = ass.origin;
@@ -104,7 +104,8 @@ FROM artists a
     INNER JOIN genre g ON (ag.genre_id = g.id)
 WHERE a.end_of_activity ISNULL
 GROUP BY g.id 
-HAVING COUNT(a.id) > 1;
+HAVING COUNT(a.id) > 1 
+ORDER BY members DESC;
 
 
 --
