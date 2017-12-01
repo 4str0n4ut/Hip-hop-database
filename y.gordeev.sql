@@ -1,26 +1,12 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 10.0
--- Dumped by pg_dump version 10.0
-
 DROP DATABASE IF EXISTS "y.gordeev";
---
--- Name: y.gordeev; Type: DATABASE; Schema: -; Owner: postgres
---
 
 CREATE DATABASE "y.gordeev" WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
 
-
-ALTER DATABASE "y.gordeev" OWNER TO postgres;
+GRANT ALL PRIVILEGES ON DATABASE "y.gordeev" TO postgres;
 
 \connect "y.gordeev"
 
 
---
--- Name: artists_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
 
 CREATE SEQUENCE artists_id_seq
     START WITH 1
@@ -33,9 +19,7 @@ CREATE SEQUENCE artists_id_seq
 ALTER TABLE artists_id_seq OWNER TO postgres;
 
 
---
--- Name: labels_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
+
 
 CREATE SEQUENCE labels_id_seq
     START WITH 1
@@ -48,9 +32,7 @@ CREATE SEQUENCE labels_id_seq
 ALTER TABLE labels_id_seq OWNER TO postgres;
 
 
---
--- Name: genre_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
+
 
 CREATE SEQUENCE genre_id_seq
     START WITH 1
@@ -63,9 +45,7 @@ CREATE SEQUENCE genre_id_seq
 ALTER TABLE genre_id_seq OWNER TO postgres;
 
 
---
--- Name: associations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
+
 
 CREATE SEQUENCE associations_id_seq
     START WITH 1
@@ -78,9 +58,7 @@ CREATE SEQUENCE associations_id_seq
 ALTER TABLE associations_id_seq OWNER TO postgres;
 
 
---
--- Name: artist_associations; Type: TABLE; Schema: public; Owner: postgres
---
+
 
 CREATE TABLE artist_associations (
     artist_id integer NOT NULL,
@@ -90,9 +68,7 @@ CREATE TABLE artist_associations (
 
 ALTER TABLE artist_associations OWNER TO postgres;
 
---
--- Name: artist_genre; Type: TABLE; Schema: public; Owner: postgres
---
+
 
 CREATE TABLE artist_genre (
     artist_id integer NOT NULL,
@@ -102,9 +78,7 @@ CREATE TABLE artist_genre (
 
 ALTER TABLE artist_genre OWNER TO postgres;
 
---
--- Name: artists; Type: TABLE; Schema: public; Owner: postgres
---
+
 
 CREATE TABLE artists (
     id integer DEFAULT nextval('artists_id_seq'::regclass) NOT NULL,
@@ -128,9 +102,7 @@ CREATE TABLE artists (
 ALTER TABLE artists OWNER TO postgres;
 
 
---
--- Name: associations; Type: TABLE; Schema: public; Owner: postgres
---
+
 
 CREATE TABLE associations (
     id integer DEFAULT nextval('associations_id_seq'::regclass) NOT NULL,
@@ -148,9 +120,7 @@ CREATE TABLE associations (
 ALTER TABLE associations OWNER TO postgres;
 
 
---
--- Name: genre; Type: TABLE; Schema: public; Owner: postgres
---
+
 
 CREATE TABLE genre (
     id integer DEFAULT nextval('genre_id_seq'::regclass) NOT NULL,
@@ -161,9 +131,7 @@ CREATE TABLE genre (
 ALTER TABLE genre OWNER TO postgres;
 
 
---
--- Name: labels; Type: TABLE; Schema: public; Owner: postgres
---
+
 
 CREATE TABLE labels (
     id integer DEFAULT nextval('labels_id_seq'::regclass) NOT NULL,
@@ -177,9 +145,7 @@ CREATE TABLE labels (
 
 ALTER TABLE labels OWNER TO postgres;
 
---
--- Data for Name: artist_associations; Type: TABLE DATA; Schema: public; Owner: postgres
---
+
 
 INSERT INTO artist_associations VALUES (1, 1);
 INSERT INTO artist_associations VALUES (2, 2);
@@ -195,9 +161,7 @@ INSERT INTO artist_associations VALUES (13, 8);
 INSERT INTO artist_associations VALUES (14, 9);
 
 
---
--- Data for Name: artist_genre; Type: TABLE DATA; Schema: public; Owner: postgres
---
+
 
 INSERT INTO artist_genre VALUES (1, 2);
 INSERT INTO artist_genre VALUES (1, 1);
@@ -228,9 +192,7 @@ INSERT INTO artist_genre VALUES (16, 3);
 INSERT INTO artist_genre VALUES (16, 9);
 
 
---
--- Data for Name: artists; Type: TABLE DATA; Schema: public; Owner: postgres
---
+
 
 INSERT INTO artists VALUES (1, 'Eazy-E', '', 'Compton, California, U.S.', 'record producer', '1964-09-07', '1995-03-26', 1, 1986, 1995, 'Eric Lynn Wright');
 INSERT INTO artists VALUES (2, 'Ice Cube', NULL, 'Los Angeles, California, U.S.', 'actor', '1969-06-15', NULL, 3, 1984, NULL, 'Oshea Jackson Sr.');
@@ -250,9 +212,7 @@ INSERT INTO artists VALUES (15, 'Night Lovell', NULL, 'Ottawa, Canada', NULL, '1
 INSERT INTO artists VALUES (16, '21 savage', '21', 'Dominica', 'record producer', '1992-10-22', NULL, 11, 2013, NULL, 'Shayaa Bin Abraham-Joseph');
 
 
---
--- Data for Name: associations; Type: TABLE DATA; Schema: public; Owner: postgres
---
+
 
 INSERT INTO associations VALUES (1, 'N.W.A', 'Los Angeles, California, U.S.', 1, 1, 1986, 1991);
 INSERT INTO associations VALUES (2, 'Westside Connection', 'Los Angeles, California, U.S.', 2, NULL, 1994, 2005);
@@ -265,9 +225,7 @@ INSERT INTO associations VALUES (8, 'Black Hippy', 'Los Angeles, California, U.S
 INSERT INTO associations VALUES (9, 'ASAP Mob', 'Harlem, Manhattan, New York, U.S.', 14, 10, 2006, NULL);
 
 
---
--- Data for Name: genre; Type: TABLE DATA; Schema: public; Owner: postgres
---
+
 
 INSERT INTO genre VALUES (1, 'gangsta rap');
 INSERT INTO genre VALUES (2, 'West Coast hip hop');
@@ -282,9 +240,7 @@ INSERT INTO genre VALUES (10, 'alternative hip hop');
 INSERT INTO genre VALUES (11, 'alternative rock');
 
 
---
--- Data for Name: labels; Type: TABLE DATA; Schema: public; Owner: postgres
---
+
 
 INSERT INTO labels VALUES (1, 'Ruthless Records', 'Jerry Heller', true, 1986);
 INSERT INTO labels VALUES (2, 'Death Row Records', 'Suge Knight', false, 1991);
@@ -299,249 +255,152 @@ INSERT INTO labels VALUES (10, 'Polo Grounds Music', 'Bryan Leach', true, 2006);
 INSERT INTO labels VALUES (11, 'Epic Records', 'Columbia Records', true, 1953);
 
 
---
--- Name: artists_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
+
 
 SELECT pg_catalog.setval('artists_id_seq', 16, true);
 
 
---
--- Name: associations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
 
 SELECT pg_catalog.setval('associations_id_seq', 9, true);
 
 
---
--- Name: genre_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
 
 SELECT pg_catalog.setval('genre_id_seq', 11, true);
 
 
---
--- Name: labels_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
 
 SELECT pg_catalog.setval('labels_id_seq', 11, true);
 
 
---
--- Name: artist_associations artist_associations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
+
 
 ALTER TABLE ONLY artist_associations
     ADD CONSTRAINT artist_associations_pkey PRIMARY KEY (artist_id, associations_id);
 
 
---
--- Name: artist_genre artist_genre_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artist_genre
     ADD CONSTRAINT artist_genre_pkey PRIMARY KEY (artist_id, genre_id);
 
 
---
--- Name: artists artists_alias_ukey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artists
     ADD CONSTRAINT artists_alias_ukey UNIQUE (alias);
 
 
---
--- Name: artists artists_artist_ukey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artists
     ADD CONSTRAINT artists_artist_ukey UNIQUE (artist);
 
 
---
--- Name: artists artists_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artists
     ADD CONSTRAINT artists_pkey PRIMARY KEY (id);
 
 
---
--- Name: associations associations_association_ukey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY associations
     ADD CONSTRAINT associations_association_ukey UNIQUE (association);
 
 
---
--- Name: associations associations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY associations
     ADD CONSTRAINT associations_pkey PRIMARY KEY (id);
 
 
---
--- Name: genre genre_genre_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY genre
     ADD CONSTRAINT genre_genre_key UNIQUE (genre);
 
 
---
--- Name: genre genre_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY genre
     ADD CONSTRAINT genre_pkey PRIMARY KEY (id);
 
 
---
--- Name: labels labels_label_ukey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY labels
     ADD CONSTRAINT labels_label_ukey UNIQUE (label);
 
 
---
--- Name: labels labels_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY labels
     ADD CONSTRAINT labels_pkey PRIMARY KEY (id);
 
 
---
--- Name: artists_birth_date_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX artists_birth_date_idx ON artists USING btree (birth_date);
 
 
---
--- Name: artists_death_date_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX artists_death_date_idx ON artists USING btree (death_date);
 
 
---
--- Name: artists_end_of_activity_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX artists_end_of_activity_idx ON artists USING btree (end_of_activity);
 
 
---
--- Name: artists_occupation_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX artists_occupation_idx ON artists USING btree (occupation);
 
 
---
--- Name: artists_start_of_activity_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX artists_start_of_activity_idx ON artists USING btree (start_of_activity);
 
 
---
--- Name: associations_end_of_activity_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX associations_end_of_activity_idx ON associations USING btree (end_of_activity);
 
 
---
--- Name: associations_leader_id_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX associations_leader_id_idx ON associations USING btree (leader_id);
 
 
---
--- Name: associations_origin_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX associations_origin_idx ON associations USING btree (origin);
 
 
---
--- Name: labels_founded_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX labels_founded_idx ON labels USING btree (founded);
 
 
---
--- Name: labels_status_idx; Type: INDEX; Schema: public; Owner: postgres
---
 
 CREATE INDEX labels_status_idx ON labels USING btree (status);
 
 
---
--- Name: artist_associations artist_associations_aid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artist_associations
     ADD CONSTRAINT artist_associations_aid_fkey FOREIGN KEY (associations_id) REFERENCES associations(id);
 
 
---
--- Name: artist_associations artist_associations_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artist_associations
     ADD CONSTRAINT artist_associations_id_fkey FOREIGN KEY (artist_id) REFERENCES artists(id);
 
 
---
--- Name: artist_genre artist_genre_gid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artist_genre
     ADD CONSTRAINT artist_genre_gid_fkey FOREIGN KEY (genre_id) REFERENCES genre(id);
 
 
---
--- Name: artist_genre artist_genre_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artist_genre
     ADD CONSTRAINT artist_genre_id_fkey FOREIGN KEY (artist_id) REFERENCES artists(id);
 
 
---
--- Name: artists artists_label_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY artists
     ADD CONSTRAINT artists_label_id_fkey FOREIGN KEY (label_id) REFERENCES labels(id);
 
 
---
--- Name: associations associations_label_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY associations
     ADD CONSTRAINT associations_label_id_fkey FOREIGN KEY (label_id) REFERENCES labels(id);
 
 
---
--- Name: associations associations_leader_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
 
 ALTER TABLE ONLY associations
     ADD CONSTRAINT associations_leader_id_fkey FOREIGN KEY (leader_id) REFERENCES artists(id);
 
 
---
--- PostgreSQL database dump complete
---
 
